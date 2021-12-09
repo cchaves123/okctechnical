@@ -1,0 +1,52 @@
+library(dplyr)
+
+shots_data <- read.csv("shots_data.csv")
+
+
+#creates classifications for 2pt, C3, NC3
+shots_data <- shots_data %>%
+  mutate(
+    distance = sqrt(x^2 + y^2),
+    shot_type = case_when(
+      abs(x) > 22 & y <= 7.8 ~ 'C3',
+      y > 7.8 & distance > 23.75 ~ 'NC3',
+      (y > 7.8 & distance <= 23.75) || (y <= 7.8 & x <= 22) ~ '2PT'
+    )
+  )
+    
+
+#groups by team A
+#calculates efg in the respective zones and percentage of shots in respective zones
+teamA <- shots_data %>%
+  filter(team == 'Team A')
+
+numshotsA <- count(teamA, shot_type, fgmade)
+
+efg2PTA <- with(numshotsA, sum(n[shot_type == '2PT' & fgmade == 1])) / with(numshotsA, sum(n[shot_type == '2PT']))
+efgC3A <- (with(numshotsA, sum(n[shot_type == 'C3' & fgmade == 1])) * 1.5) / with(numshotsA, sum(n[shot_type == 'C3']))
+efgNC3A <- (with(numshotsA, 
+                sum(n[shot_type == 'NC3' & fgmade == 1])) * 1.5) / with(numshotsA, sum(n[shot_type == 'NC3']))
+
+shotdistributionA <- count(teamA, shot_type) %>%
+  mutate(
+    pct_shots = n / sum(n)
+  )
+  
+
+#groups by team B
+#calculates efg in the respective zones and percentage of shots in respective zones
+teamB <- shots_data %>%
+  filter(team == 'Team B')
+
+numshotsB <- count(teamB, shot_type, fgmade)
+
+efg2PTB <- with(numshotsB, sum(n[shot_type == '2PT' & fgmade == 1])) / with(numshotsB, sum(n[shot_type == '2PT']))
+efgC3B <- (with(numshotsB, sum(n[shot_type == 'C3' & fgmade == 1])) * 1.5) / with(numshotsB, sum(n[shot_type == 'C3']))
+efgNC3B <- (with(numshotsB, 
+                sum(n[shot_type == 'NC3' & fgmade == 1])) * 1.5) / with(numshotsB, sum(n[shot_type == 'NC3']))
+
+
+shotdistributionB <- count(teamB, shot_type) %>%
+  mutate(
+    pct_shots = n / sum(n)
+  )
